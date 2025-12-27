@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution items", "solution items", "{B7CD15F9-A094-4C77-92CC-C3515884EB32}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub", "src\SendHub\SendHub.csproj", "{357784AD-2254-4D58-9D41-CDD925BE2C15}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aspire", "Aspire", "{B7E6D6DF-FC49-433F-8550-84B9A0620133}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.Daemon", "src\SendHub.Daemon\SendHub.Daemon.csproj", "{22C6EA14-226A-4AC4-A1F4-E9C177A8ABA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.ServiceDefaults", "src\Aspire\SendHub.ServiceDefaults\SendHub.ServiceDefaults.csproj", "{9A89AF17-9E43-4780-A86C-35CED5B45D00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.AppHost", "src\Aspire\SendHub.AppHost\SendHub.AppHost.csproj", "{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{357784AD-2254-4D58-9D41-CDD925BE2C15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357784AD-2254-4D58-9D41-CDD925BE2C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{357784AD-2254-4D58-9D41-CDD925BE2C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357784AD-2254-4D58-9D41-CDD925BE2C15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22C6EA14-226A-4AC4-A1F4-E9C177A8ABA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22C6EA14-226A-4AC4-A1F4-E9C177A8ABA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22C6EA14-226A-4AC4-A1F4-E9C177A8ABA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22C6EA14-226A-4AC4-A1F4-E9C177A8ABA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A89AF17-9E43-4780-A86C-35CED5B45D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A89AF17-9E43-4780-A86C-35CED5B45D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A89AF17-9E43-4780-A86C-35CED5B45D00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A89AF17-9E43-4780-A86C-35CED5B45D00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9A89AF17-9E43-4780-A86C-35CED5B45D00} = {B7E6D6DF-FC49-433F-8550-84B9A0620133}
+		{315C26E9-BAC5-4E8A-A9D2-CED4285D7A3F} = {B7E6D6DF-FC49-433F-8550-84B9A0620133}
+	EndGlobalSection
+EndGlobal
