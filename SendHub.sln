@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.Infrastructure", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.Daemon.Tests", "src\SendHub.Daemon.Tests\SendHub.Daemon.Tests.csproj", "{2EAF5EF8-48CD-48B1-8D29-A2301E17F04D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHub.Features.Tests", "src\SendHub.Features.Tests\SendHub.Features.Tests.csproj", "{58784DFF-6C41-4526-A74A-0CD10839A860}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{2EAF5EF8-48CD-48B1-8D29-A2301E17F04D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EAF5EF8-48CD-48B1-8D29-A2301E17F04D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EAF5EF8-48CD-48B1-8D29-A2301E17F04D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58784DFF-6C41-4526-A74A-0CD10839A860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58784DFF-6C41-4526-A74A-0CD10839A860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58784DFF-6C41-4526-A74A-0CD10839A860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58784DFF-6C41-4526-A74A-0CD10839A860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9A89AF17-9E43-4780-A86C-35CED5B45D00} = {B7E6D6DF-FC49-433F-8550-84B9A0620133}
