@@ -1,72 +1,157 @@
-﻿using SendHub.Features.Folder.MoveFile;
-using SendHub.Features.Folder.Scan;
+﻿using System.IO.Abstractions;
+using System.Threading.Channels;
+using Microsoft.Extensions.Options;
+using SendHub.Features.FileProcessing;
+using SendHub.ValueObjects;
 
 namespace SendHub.Daemon;
 
 internal sealed class FolderWatcher(
     ILogger<FolderWatcher> logger,
-    ICommandHandler<ScanFolder, ScanFolderResult> ScanFolder,
-    IEnumerable<IFileSender> Senders,
-    ICommandHandler<MoveFile> MoveFile) : BackgroundService
+    IOptions<FolderWatcherSettings> settings,
+    IFileSystem fileSystem,
+    IFileScanner fileScanner,
+    IFileSystemWatcherFactory watcherFactory,
+    ICommandHandler<ProcessIncomingFile> processFileHandler) : BackgroundService
 {
-    protected override async Task ExecuteAsync(
-        CancellationToken stoppingToken)
-    {
-        const string FolderToWatch = @"C:\ScanFolder";
-        var Destination = new DirectoryInfo(Path.Combine(FolderToWatch, "00_Processed"));
-        var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+    private readonly FolderWatcherSettings _settings = settings.Value;
+    private readonly Channel<FileInfo> _fileQueue = Channel.CreateUnbounded<FileInfo>();
 
-        do
+    private IFileSystemWatcher? _fileSystemWatcher;
+
+    private readonly DirectoryPath _watchFolder =
+        DirectoryPath.From(settings.Value.WatchFolder);
+
+    private readonly DirectoryPath _destinationFolder =
+        DirectoryPath.From(settings.Value.DestinationFolder);
+
+    public override Task StartAsync(
+        CancellationToken cancellationToken)
+    {
+        if (!fileSystem.Directory.Exists(_destinationFolder))
+        {
+            fileSystem.Directory
+                .CreateDirectory(_destinationFolder);
+
+            FolderWatcherLogMessages
+                .CreatedDestinationFolder(logger, _destinationFolder.Value);
+        }
+
+        _fileSystemWatcher = watcherFactory.Create(_watchFolder.Value,"*.*");
+        _fileSystemWatcher.Created += OnFileCreated;
+        _fileSystemWatcher.Error += OnWatcherError;
+
+        return base.StartAsync(cancellationToken);
+    }
+
+    protected override async Task ExecuteAsync(
+        CancellationToken cancellationToken)
+    {
+        await ScanExistingFiles(
+            cancellationToken);
+
+        _fileSystemWatcher!.EnableRaisingEvents = true;
+        FolderWatcherLogMessages
+            .WatchingFolder(logger, _watchFolder.Value);
+
+        var workers = Enumerable.Range(0, 3)
+            .Select(id => ProcessFileQueue(id, cancellationToken))
+            .ToArray();
+
+        await Task.WhenAll(workers);
+    }
+
+    private async Task ProcessFileQueue(
+        int workerId,
+        CancellationToken cancellationToken)
+    {
+        FolderWatcherLogMessages
+            .WorkerStarted(logger, workerId);
+
+        await foreach (var file in _fileQueue.Reader.ReadAllAsync(cancellationToken))
         {
             try
             {
-                if (!Directory.Exists(Destination.FullName))
-                {
-                    Directory.CreateDirectory(Destination.FullName);
-                }
-
-                LogMessages.ScanningFolder(logger, FolderToWatch);
-
-                var result = await ScanFolder.Handle(new ScanFolder(FolderToWatch), stoppingToken);
-
-                LogMessages.FolderScanned(logger, result.fileCount);
-                foreach (var file in result.files)
-                {
-                    LogMessages.FileFound(logger, file.Name);
-                    foreach (var sender in Senders)
-                    {
-                        await sender
-                            .Send(file, stoppingToken);
-                        LogMessages.FileSent(logger, file.Name, sender.Name);
-                    }
-
-                    await MoveFile.Handle(new MoveFile(
-                        SourceFile: file,
-                        Destination: Destination), stoppingToken);
-                }
+                await processFileHandler.Handle(
+                    new ProcessIncomingFile(file),
+                    cancellationToken);
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                LogMessages.ExceptionWhileScanning(logger, exception.Message, exception);
+                FolderWatcherLogMessages
+                    .WorkerFailedProcessing(logger, workerId, file.FullName, ex);
             }
-        } while (await timer.WaitForNextTickAsync(stoppingToken));
+        }
+
+        FolderWatcherLogMessages
+            .WorkerStopped(logger, workerId);
     }
-}
 
-internal static partial class LogMessages
-{
-    [LoggerMessage(LogLevel.Information, "Scanning folder '{folderPath}'...")]
-    public static partial void ScanningFolder(ILogger logger, string folderPath);
+    private async Task ScanExistingFiles(
+        CancellationToken cancellationToken)
+    {
+        FolderWatcherLogMessages
+            .ScanningExistingFiles(logger, _watchFolder.Value);
 
-    [LoggerMessage(LogLevel.Information, "Found {fileCount} file(s) in folder")]
-    public static partial void FolderScanned(ILogger logger, int fileCount);
+        var files = await fileScanner.GetFiles(
+            _settings.WatchFolder,
+            "*.*",
+            cancellationToken);
 
-    [LoggerMessage(LogLevel.Debug, "\t- {fileName}")]
-    public static partial void FileFound(ILogger logger, string fileName);
+        foreach (var file in files)
+        {
+            FolderWatcherLogMessages
+                .FoundFile(logger, file.Name);
+            await _fileQueue.Writer
+                .WriteAsync(file, cancellationToken);
+        }
 
-    [LoggerMessage(LogLevel.Information, "File '{fileName}' sent using '{senderName}' sender")]
-    public static partial void FileSent(ILogger logger, string fileName, string senderName);
+        FolderWatcherLogMessages
+            .FoundExistingFiles(logger, files.Count);
+    }
 
-    [LoggerMessage(LogLevel.Error, "Exception occurred while scanning folder: {exceptionMessage}")]
-    public static partial void ExceptionWhileScanning(ILogger logger, string exceptionMessage, Exception exception);
+    private void OnFileCreated(
+        object sender,
+        FileSystemEventArgs e)
+    {
+        try
+        {
+            var fileInfo = new FileInfo(e.FullPath);
+
+            if (_fileQueue.Writer.TryWrite(fileInfo))
+            {
+                FolderWatcherLogMessages
+                    .FileQueued(logger, fileInfo.Name);
+            }
+            else
+            {
+                FolderWatcherLogMessages
+                    .QueueFull(logger, fileInfo.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            FolderWatcherLogMessages
+                .ErrorQueuingFile(logger, e.FullPath, ex);
+        }
+    }
+
+    private void OnWatcherError(
+        object sender,
+        ErrorEventArgs e)
+    {
+        FolderWatcherLogMessages
+            .FileSystemWatcherError(logger, e.GetException());
+
+        TryRecoverFileSystemWatcher();
+    }
+
+    private void TryRecoverFileSystemWatcher()
+    {
+        if (_fileSystemWatcher is not { EnableRaisingEvents: true })
+            return;
+
+        _fileSystemWatcher.EnableRaisingEvents = false;
+        _fileSystemWatcher.EnableRaisingEvents = true;
+    }
 }

@@ -17,10 +17,18 @@
       <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
       <PackageReference Include="Serilog.Enrichers.UtcTime" Version="1.0.0" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+      <PackageReference Include="System.IO.Abstractions" Version="22.1.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\SendHub.Features\SendHub.Features.csproj" />
+      <ProjectReference Include="..\SendHub.Infrastructure\SendHub.Infrastructure.csproj" />
       <ProjectReference Include="..\SendHub\SendHub.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <internalsVisibleTo Include="SendHub.Daemon.Tests" />
+        <internalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,8 @@
-﻿using SendHub;
+﻿using System.IO.Abstractions;
+using SendHub;
 using SendHub.Daemon;
+using SendHub.Features;
+using SendHub.Infrastructure;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -27,15 +30,22 @@ builder.Configuration
     .AddUserSecrets<Program>()
     .AddEnvironmentVariables(prefix: "SendHub_");
 
+builder.Services
+    .AddOptions<FolderWatcherSettings>()
+    .BindConfiguration(FolderWatcherSettings.SectionName)
+    .ValidateOnStart();
+
 builder.Logging
     .ClearProviders()
     .AddSerilog(Log.Logger, dispose: true);
 
 builder.Services
-    .AddSendHub()
-    .AddEmail(builder.Configuration)
-    .AddTeams()
-    .AddHostedService<FolderWatcher>();
+    .AddSendHubFeatures()
+    .AddSendHubInfrastructure()
+    // .AddEmailSender(builder.Configuration)
+    // .AddTeamsSender()
+    .AddHostedService<FolderWatcher>()
+    .AddTransient<IFileSystem, FileSystem>();
 
 using var host = builder
     .Build();
