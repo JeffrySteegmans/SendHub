@@ -13,6 +13,12 @@ internal sealed class FakeFileSystemWatcher : IFileSystemWatcher
             .Invoke(this, args);
     }
 
+    public void RaiseError(ErrorEventArgs args)
+    {
+        Error?
+            .Invoke(this, args);
+    }
+
     public void Dispose()
     {
     }

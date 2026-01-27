@@ -79,7 +79,7 @@ public sealed class OnFileCreatedTests
             cancellationTokenSource.Token);
 
         Assert.Same(fileProcessed.Task, winner);
-        Assert.Equal(1, processedFiles.Count);
+        Assert.Single(processedFiles);
         Assert.Contains("test.txt", processedFiles);
     }
 }

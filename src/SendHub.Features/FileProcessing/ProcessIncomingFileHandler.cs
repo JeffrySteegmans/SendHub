@@ -9,7 +9,8 @@ internal sealed class ProcessIncomingFileHandler(
         ProcessIncomingFile command,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Processing file {file}", command.File);
+        LogMessages
+            .ProcessingFile(logger, command.File.Name);
 
         return Task.CompletedTask;
     }
