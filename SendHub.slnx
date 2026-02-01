@@ -14,6 +14,7 @@
   <Project Path="src/SendHub.Daemon/SendHub.Daemon.csproj" />
   <Project Path="src/SendHub.Features.Tests/SendHub.Features.Tests.csproj" />
   <Project Path="src/SendHub.Features/SendHub.Features.csproj" />
+  <Project Path="src/SendHub.Infrastructure.Tests/SendHub.Infrastructure.Tests.csproj" />
   <Project Path="src/SendHub.Infrastructure/SendHub.Infrastructure.csproj" />
   <Project Path="src/SendHub/SendHub.csproj" />
 </Solution>

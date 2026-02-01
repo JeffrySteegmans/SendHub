@@ -1,5 +1,5 @@
 ﻿using System.IO.Abstractions;
-using SendHub;
+using NodaTime;
 using SendHub.Daemon;
 using SendHub.Features;
 using SendHub.Infrastructure;
@@ -42,10 +42,9 @@ builder.Logging
 builder.Services
     .AddSendHubFeatures()
     .AddSendHubInfrastructure()
-    // .AddEmailSender(builder.Configuration)
-    // .AddTeamsSender()
     .AddHostedService<FolderWatcher>()
-    .AddTransient<IFileSystem, FileSystem>();
+    .AddTransient<IFileSystem, FileSystem>()
+    .AddSingleton<IClock>(SystemClock.Instance);
 
 using var host = builder
     .Build();

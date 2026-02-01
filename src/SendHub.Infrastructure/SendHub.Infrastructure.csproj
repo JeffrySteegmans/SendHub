@@ -2,6 +2,9 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+        <PackageReference Include="NodaTime" />
+        <PackageReference Include="Testably.Abstractions.FileSystem.Interface" />
     </ItemGroup>
 
     <ItemGroup>
@@ -9,7 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Tracking\" />
+        <internalsVisibleTo Include="SendHub.Infrastructure.Tests"/>
+        <internalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
     
 </Project>

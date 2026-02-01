@@ -73,7 +73,7 @@ internal sealed class FolderWatcher(
             try
             {
                 await processFileHandler.Handle(
-                    new ProcessIncomingFile(file),
+                    new ProcessIncomingFile(file, _destinationFolder.Value),
                     cancellationToken);
             }
             catch (Exception ex)

@@ -3,7 +3,7 @@
 namespace SendHub.Infrastructure.Messaging.Email;
 
 internal sealed class SmtpFileSender(
-    ILogger<SmtpFileSender> logger) : IFileSender
+    ILogger<SmtpFileSender> logger) : SendHub.IFileSender
 {
     public string Name => "Email (SMTP)";
 
