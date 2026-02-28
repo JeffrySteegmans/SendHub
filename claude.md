@@ -9,7 +9,7 @@
 - File sharing processes
 - Continuous monitoring of scan folders
 
-**Current Status:** MVP phase with folder monitoring and email delivery as core features.
+**Current Status:** MVP complete — folder monitoring, email delivery, file archiving, and idempotency tracking are all fully implemented and tested.
 
 ## Architecture
 
@@ -57,6 +57,9 @@ FolderWatcher (BackgroundService)
 
 - Business logic layer using command pattern
 - [FileProcessing/](src/SendHub.Features/FileProcessing/): File processing commands and handlers
+  - `ProcessIncomingFile`: Command record (file + destination folder)
+  - `ProcessIncomingFileHandler`: 2-phase processing — send to all senders in parallel, then archive and mark as processed only if all succeed
+  - `FileSendException`: Aggregates per-sender failures for error reporting
 
 #### SendHub.Infrastructure (Library)
 
@@ -74,11 +77,12 @@ FolderWatcher (BackgroundService)
 #### SendHub.Features.Tests
 
 - Unit tests for features layer
+- `ProcessIncomingFileHandlerTests`: pending implementation
 
 #### SendHub.Infrastructure.Tests
 
 - Unit tests for infrastructure layer
-- Covers `JsonFileTracker` tracking behavior
+- Covers `FileArchiver` (move, conflict resolution), `SmtpFileSender` (settings validation), and `JsonFileTracker` (persistence, idempotency, corruption recovery)
 
 ### Aspire Projects
 
@@ -109,7 +113,7 @@ Location: [src/SendHub.Infrastructure/FileSystem/](src/SendHub.Infrastructure/Fi
 - `FileSystemScanner`: Scans directories for files
 - `FileSystemWatcherAdapter`: Wraps System.IO.FileSystemWatcher
 - `FileSystemWatcherFactory`: Factory for creating watchers
-- `FileArchiver`: Archives processed files to the destination folder (stub — in progress)
+- `FileArchiver`: Archives processed files to the destination folder (moves file, handles name conflicts with counter suffix)
 
 ### 3. Command Pattern Implementation
 
@@ -221,6 +225,9 @@ Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, 
            "From": "sendhub@example.com",
            "To": "recipient@example.com"
          }
+       },
+       "Tracking": {
+         "FilePath": "D:\\SendHub\\tracking.json"
        }
      }
    }
@@ -280,9 +287,10 @@ dotnet test /p:CollectCoverage=true
 
 ### Test structure
 
-- **Unit Tests:** FolderWatcher, file processing handlers
+- **Unit Tests:** FolderWatcher (daemon), FileArchiver, SmtpFileSender, JsonFileTracker (infrastructure)
 - **Mocking:** Uses Moq for dependencies
 - **File System:** System.IO.Abstractions.TestingHelpers for file system mocking
+- **Time:** NodaTime.Testing FakeClock for deterministic timestamp tests
 
 ## Future Roadmap
 
