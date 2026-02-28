@@ -43,7 +43,7 @@ FolderWatcher (BackgroundService)
 #### SendHub (Library)
 
 - Base abstractions and interfaces
-- Core types: `ICommand`, `ICommandHandler<T>`, `IFileScanner`, `IFileSender`, `IFileSystemWatcher`
+- Core types: `ICommand`, `ICommandHandler<T>`, `IFileScanner`, `IFileSender`, `IFileSystemWatcher`, `IFileSystemWatcherFactory`, `IFileArchiver`, `IProcessedFileTracker`
 - Value Objects: `DirectoryPath` (validated directory paths)
 
 #### SendHub.Daemon (Worker Service)
@@ -60,9 +60,9 @@ FolderWatcher (BackgroundService)
 
 #### SendHub.Infrastructure (Library)
 
-- FileSystem: File scanning and watching implementations
-- Messaging: Abstraction for sending files (Email, Teams, etc.)
-- Tracking: Future logging/tracking functionality
+- FileSystem: File scanning, watching, and archiving implementations
+- Messaging: Email sending via SMTP (`SmtpFileSender`)
+- Tracking: JSON-based processed file tracking (`JsonFileTracker`) for idempotency
 
 ### Test Projects
 
@@ -74,6 +74,11 @@ FolderWatcher (BackgroundService)
 #### SendHub.Features.Tests
 
 - Unit tests for features layer
+
+#### SendHub.Infrastructure.Tests
+
+- Unit tests for infrastructure layer
+- Covers `JsonFileTracker` tracking behavior
 
 ### Aspire Projects
 
@@ -104,6 +109,7 @@ Location: [src/SendHub.Infrastructure/FileSystem/](src/SendHub.Infrastructure/Fi
 - `FileSystemScanner`: Scans directories for files
 - `FileSystemWatcherAdapter`: Wraps System.IO.FileSystemWatcher
 - `FileSystemWatcherFactory`: Factory for creating watchers
+- `FileArchiver`: Archives processed files to the destination folder (stub — in progress)
 
 ### 3. Command Pattern Implementation
 
@@ -115,15 +121,32 @@ Location: [src/SendHub/](src/SendHub/)
 - `ICommandHandler<TCommand>`: Handler interface
 - `ProcessIncomingFile`: Command for file processing
 
-### 4. Configuration System
+### 4. Processed File Tracking
+
+Location: [src/SendHub.Infrastructure/Tracking/](src/SendHub.Infrastructure/Tracking/)
+
+Ensures idempotency — files already processed are not sent again after restarts.
+
+- `JsonFileTracker`: Implements `IProcessedFileTracker`, persists state to a JSON file
+- `TrackedFile`: Value object holding file path and processed timestamp
+- `TrackingSettings`: Configuration (`SendHub:Tracking:FilePath`)
+
+### 5. Configuration System
 
 Location: [src/SendHub.Daemon/FolderWatcherSettings.cs](src/SendHub.Daemon/FolderWatcherSettings.cs)
 
 #### Settings
 
-- WatchFolder: Folder to monitor
-- DestinationFolder: Where processed files go
-- Email configuration (SMTP settings)
+`FolderWatcherSettings` (section: `SendHub`):
+
+- `WatchFolder`: Folder to monitor
+- `DestinationFolder`: Where processed files go
+
+Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, port, username, password, SSL, from, to).
+
+`TrackingSettings` (section: `SendHub:Tracking`):
+
+- `FilePath`: Path to the JSON file persisting processed file records
 
 ## Technologies Used
 
@@ -145,7 +168,7 @@ Location: [src/SendHub.Daemon/FolderWatcherSettings.cs](src/SendHub.Daemon/Folde
 - Serilog enrichers (machine name, process ID, thread ID, UTC time)
 - OpenTelemetry (instrumentation ready)
 
-### Testing
+### Test Frameworks
 
 - xUnit (test framework)
 - Moq (mocking library)
@@ -266,7 +289,6 @@ dotnet test /p:CollectCoverage=true
 Planned features for post-MVP:
 
 - Web-based configuration interface
-- Activity logging and history
 - Microsoft Teams integration
 - Slack integration
 - Webhook support
@@ -277,18 +299,20 @@ Planned features for post-MVP:
 ```text
 SendHub/
 ├── src/
-│   ├── SendHub/                    # Core abstractions
-│   ├── SendHub.Daemon/             # Worker service (main executable)
-│   ├── SendHub.Features/           # Business logic
-│   ├── SendHub.Infrastructure/     # Cross-cutting concerns
-│   ├── SendHub.AppHost/           # Aspire orchestration
-│   └── SendHub.ServiceDefaults/   # Shared configuration
-├── tests/
-│   ├── SendHub.Daemon.Tests/
-│   └── SendHub.Features.Tests/
-├── global.json                     # .NET SDK version
-├── Directory.Build.props           # Shared MSBuild properties
-└── SendHub.slnx                   # Solution file
+│   ├── SendHub/                         # Core abstractions
+│   ├── SendHub.Daemon/                  # Worker service (main executable)
+│   ├── SendHub.Daemon.Tests/            # Unit tests for daemon
+│   ├── SendHub.Features/                # Business logic
+│   ├── SendHub.Features.Tests/          # Unit tests for features
+│   ├── SendHub.Infrastructure/          # Cross-cutting concerns
+│   ├── SendHub.Infrastructure.Tests/    # Unit tests for infrastructure
+│   └── Aspire/
+│       ├── SendHub.AppHost/             # Aspire orchestration
+│       └── SendHub.ServiceDefaults/     # Shared service configuration
+├── global.json                          # .NET SDK version pinning
+├── Directory.Build.props                # Shared MSBuild properties
+├── Directory.Packages.props             # Centralized NuGet package versions
+└── SendHub.slnx                         # Solution file
 ```
 
 ## Additional Notes
