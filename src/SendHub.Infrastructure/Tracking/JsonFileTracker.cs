@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
 
 namespace SendHub.Infrastructure.Tracking;
 
@@ -12,11 +13,11 @@ internal sealed class JsonFileTracker(
     IOptions<TrackingSettings> settings,
     ILogger<JsonFileTracker> logger) : IProcessedFileTracker
 {
-    private static readonly JsonSerializerOptions JsonOptions = new ()
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    }.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
     private readonly string _trackingFilePath = settings.Value.FilePath;
     private readonly SemaphoreSlim _lock = new(1, 1);

@@ -4,6 +4,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
         <PackageReference Include="NodaTime" />
+        <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
         <PackageReference Include="Testably.Abstractions.FileSystem.Interface" />
     </ItemGroup>
 

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
 using NodaTime.Testing;
 using SendHub.Infrastructure.Tracking;
 
@@ -56,7 +57,7 @@ public sealed class JsonFileTrackerTests
         var json = JsonSerializer.Serialize(existingRecords, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        }.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb));
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -90,7 +91,7 @@ public sealed class JsonFileTrackerTests
         var trackedFiles = JsonSerializer.Deserialize<TrackedFile[]>(json, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        }.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb));
 
         Assert
             .NotNull(trackedFiles);
@@ -160,7 +161,7 @@ public sealed class JsonFileTrackerTests
         var records = JsonSerializer.Deserialize<TrackedFile[]>(json, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        }.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb));
 
         Assert
             .NotNull(records);
