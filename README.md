@@ -8,14 +8,16 @@ SendHub watches a specified folder for new files and automatically emails them t
 
 ## ✨ Features
 
-### MVP (Current Version)
+### MVP (Implemented)
 
-- **Folder Monitoring**: Continuously watches a configured folder for new files
-- **Email Delivery**: Automatically sends detected files as email attachments to configured recipients
-- **Flexible Configuration**: Configure via `appsettings.json` or environment variables:
-  - Folder path to monitor
-  - Recipient email addresses
-  - SMTP server settings
+- **Folder Monitoring**: Continuously watches a configured folder for new files using a real-time file system watcher with 3 concurrent worker threads
+- **Email Delivery**: Automatically sends detected files as email attachments via SMTP
+- **File Archiving**: Moves processed files to a configurable destination folder (with automatic conflict resolution)
+- **Idempotency Tracking**: Persists processed file records to JSON so files are never sent twice after a restart
+- **Flexible Configuration**: Configure via `appsettings.json`, user secrets, or environment variables:
+  - Folder paths (watch folder and destination folder)
+  - SMTP server settings (host, port, credentials, SSL)
+  - Tracking file path
 
 ### 🚀 Planned Features
 
@@ -39,16 +41,21 @@ SendHub can be configured using either `appsettings.json` or environment variabl
 ```json
 {
   "SendHub": {
-    "WatchFolder": "/path/to/watch",
+    "WatchFolder": "D:\\ScanFolder",
+    "DestinationFolder": "D:\\ScanFolder\\Processed",
     "Email": {
-      "To": "recipient@example.com",
       "Smtp": {
-        "Host": "smtp.example.com",
+        "Host": "smtp.gmail.com",
         "Port": 587,
-        "Username": "your-username",
-        "Password": "your-password",
-        "EnableSsl": true
+        "Username": "your-email@gmail.com",
+        "Password": "your-app-password",
+        "EnableSsl": true,
+        "From": "sendhub@example.com",
+        "To": "recipient@example.com"
       }
+    },
+    "Tracking": {
+      "FilePath": "D:\\SendHub\\tracking.json"
     }
   }
 }
@@ -57,30 +64,35 @@ SendHub can be configured using either `appsettings.json` or environment variabl
 ### Using Environment Variables
 
 ```bash
-SENDHUB_WATCHFOLDER=/path/to/watch
-SENDHUB_EMAIL__TO=recipient@example.com
-SENDHUB_EMAIL__SMTP__HOST=smtp.example.com
-SENDHUB_EMAIL__SMTP__PORT=587
-SENDHUB_EMAIL__SMTP__USERNAME=your-username
-SENDHUB_EMAIL__SMTP__PASSWORD=your-password
-SENDHUB_EMAIL__SMTP__ENABLESSL=true
+SendHub_WatchFolder=D:\ScanFolder
+SendHub_DestinationFolder=D:\ScanFolder\Processed
+SendHub_Email__Smtp__Host=smtp.gmail.com
+SendHub_Email__Smtp__Port=587
+SendHub_Email__Smtp__Username=your-email@gmail.com
+SendHub_Email__Smtp__Password=your-app-password
+SendHub_Email__Smtp__EnableSsl=true
+SendHub_Email__Smtp__From=sendhub@example.com
+SendHub_Email__Smtp__To=recipient@example.com
+SendHub_Tracking__FilePath=D:\SendHub\tracking.json
 ```
 
 ## 🚀 Installation
 
 ### Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download) or later
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) or later
 
 ### Steps
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/JeffrySteegmans/SendHub.git
    cd SendHub
    ```
 
 2. Build the application:
+
    ```bash
    dotnet build
    ```
@@ -88,6 +100,7 @@ SENDHUB_EMAIL__SMTP__ENABLESSL=true
 3. Configure the application (see Configuration section above)
 
 4. Run the application:
+
    ```bash
    dotnet run
    ```
@@ -128,6 +141,8 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 ## 🗺️ Roadmap
 
 - [x] MVP: Folder monitoring and email delivery
+- [x] File archiving (move to destination folder with conflict resolution)
+- [x] Idempotency tracking (JSON persistence, survives restarts)
 - [ ] Web-based configuration interface
 - [ ] Activity logging and history
 - [ ] Microsoft Teams integration

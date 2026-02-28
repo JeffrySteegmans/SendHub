@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Aspire/">
+    <Project Path="src/Aspire/SendHub.AppHost/SendHub.AppHost.csproj" />
+    <Project Path="src/Aspire/SendHub.ServiceDefaults/SendHub.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/solution items/">
+    <File Path=".gitignore" />
+    <File Path="claude.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/SendHub.Daemon.Tests/SendHub.Daemon.Tests.csproj" />
+  <Project Path="src/SendHub.Daemon/SendHub.Daemon.csproj" />
+  <Project Path="src/SendHub.Features.Tests/SendHub.Features.Tests.csproj" />
+  <Project Path="src/SendHub.Features/SendHub.Features.csproj" />
+  <Project Path="src/SendHub.Infrastructure.Tests/SendHub.Infrastructure.Tests.csproj" />
+  <Project Path="src/SendHub.Infrastructure/SendHub.Infrastructure.csproj" />
+  <Project Path="src/SendHub/SendHub.csproj" />
+</Solution>
