@@ -19,6 +19,9 @@ internal sealed class ProcessIncomingFileHandler(
         {
             LogMessages
                 .AlreadyProcessed(logger, file.Name);
+
+            await archiver
+                .Archive(file, command.DestinationFolder, cancellationToken);
             return;
         }
 
@@ -56,7 +59,7 @@ internal sealed class ProcessIncomingFileHandler(
             .AllSendersSucceeded(logger, file.Name);
 
         await archiver
-            .Archive(file, cancellationToken);
+            .Archive(file, command.DestinationFolder, cancellationToken);
         await tracker
             .MarkProcessed(file.FullName);
 
