@@ -17,6 +17,12 @@ public static class Registration
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
+            services
+                .AddOptions<SmtpSettings>()
+                .BindConfiguration(SmtpSettings.SectionName)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
             return services
                 .AddSingleton<IFileScanner, FileSystemScanner>()
                 .AddSingleton<IFileSystemWatcher, FileSystemWatcherAdapter>()
