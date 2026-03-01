@@ -105,6 +105,97 @@ SendHub_Tracking__FilePath=D:\SendHub\tracking.json
    dotnet run
    ```
 
+## 🐳 Docker
+
+SendHub can run as a Docker container, which is the recommended deployment method for production use.
+
+### Docker Prerequisites
+
+- [Docker Engine](https://docs.docker.com/get-docker/) 24.0 or later
+- [Docker Compose](https://docs.docker.com/compose/install/) v2 (included with Docker Desktop)
+
+### Quick Start with Docker Compose
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/JeffrySteegmans/SendHub.git
+   cd SendHub
+   ```
+
+2. Create a `.env` file from the example:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Edit `.env` with your SMTP settings and scan folder path:
+
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your-email@gmail.com
+   SMTP_PASSWORD=your-app-password
+   SMTP_FROM=sendhub@example.com
+   SMTP_TO=recipient@example.com
+   SCAN_FOLDER_HOST_PATH=/path/to/your/scan/folder
+   ```
+
+4. Start the container:
+
+   ```bash
+   docker compose up -d
+   ```
+
+5. View logs:
+
+   ```bash
+   docker compose logs -f sendhub
+   ```
+
+### Running with Docker directly
+
+```bash
+docker build -t sendhub .
+
+docker run -d \
+  --name sendhub \
+  --restart unless-stopped \
+  -v /path/to/scan/folder:/data/scan \
+  -v sendhub-tracking:/data/tracking \
+  -e SendHub__Email__Smtp__Host=smtp.gmail.com \
+  -e SendHub__Email__Smtp__Port=587 \
+  -e SendHub__Email__Smtp__Username=your-email@gmail.com \
+  -e SendHub__Email__Smtp__Password=your-app-password \
+  -e SendHub__Email__Smtp__From=sendhub@example.com \
+  -e SendHub__Email__Smtp__To=recipient@example.com \
+  sendhub
+```
+
+### Volume Reference
+
+| Container path | Purpose | Recommended mount |
+| --- | --- | --- |
+| `/data/scan` | Folder monitored for new files. Processed files are moved to `/data/scan/Processed`. | Bind mount to host scan folder |
+| `/data/tracking` | Stores `tracking.json` to prevent re-sending files after container restart. | Named Docker volume |
+
+### Environment Variable Reference
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `SendHub__WatchFolder` | No | `/data/scan` | Folder to monitor for new files |
+| `SendHub__DestinationFolder` | No | `/data/scan/Processed` | Where processed files are archived |
+| `SendHub__Tracking__FilePath` | No | `/data/tracking/tracking.json` | Path to idempotency tracking file |
+| `SendHub__Email__Smtp__Host` | Yes | — | SMTP server hostname |
+| `SendHub__Email__Smtp__Port` | Yes | — | SMTP server port (587 for STARTTLS) |
+| `SendHub__Email__Smtp__Username` | No | — | SMTP username (omit for anonymous relay) |
+| `SendHub__Email__Smtp__Password` | No | — | SMTP password |
+| `SendHub__Email__Smtp__EnableSsl` | No | `true` | Use SSL/TLS for SMTP |
+| `SendHub__Email__Smtp__From` | Yes | — | Sender email address |
+| `SendHub__Email__Smtp__To` | Yes | — | Recipient email address |
+
+---
+
 ## 📖 Usage
 
 1. Start SendHub with your configuration
@@ -143,7 +234,7 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 - [x] MVP: Folder monitoring and email delivery
 - [x] File archiving (move to destination folder with conflict resolution)
 - [x] Idempotency tracking (JSON persistence, survives restarts)
-- [ ] Docker image support
+- [x] Docker image support
 - [ ] Web-based configuration interface
 - [ ] Activity logging and history
 - [ ] Microsoft Teams integration
