@@ -6,4 +6,5 @@ public record FolderWatcherSettings
 
     public required string WatchFolder { get; init; }
     public required string DestinationFolder { get; init; }
+    public int PollingIntervalSeconds { get; init; } = 30;
 }
