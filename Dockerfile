@@ -27,9 +27,9 @@ RUN dotnet publish src/SendHub.Daemon/SendHub.Daemon.csproj \
     --output /app/publish
 
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
-RUN adduser --disabled-password --gecos "" sendhub
+RUN useradd --system --no-create-home --shell /usr/sbin/nologin sendhub
 
 WORKDIR /app
 

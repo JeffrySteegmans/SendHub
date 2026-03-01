@@ -28,7 +28,7 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>()
-    .AddEnvironmentVariables(prefix: "SendHub_");
+    .AddEnvironmentVariables();
 
 builder.Services
     .AddOptions<FolderWatcherSettings>()

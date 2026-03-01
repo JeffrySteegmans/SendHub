@@ -64,16 +64,16 @@ SendHub can be configured using either `appsettings.json` or environment variabl
 ### Using Environment Variables
 
 ```bash
-SendHub_WatchFolder=D:\ScanFolder
-SendHub_DestinationFolder=D:\ScanFolder\Processed
-SendHub_Email__Smtp__Host=smtp.gmail.com
-SendHub_Email__Smtp__Port=587
-SendHub_Email__Smtp__Username=your-email@gmail.com
-SendHub_Email__Smtp__Password=your-app-password
-SendHub_Email__Smtp__EnableSsl=true
-SendHub_Email__Smtp__From=sendhub@example.com
-SendHub_Email__Smtp__To=recipient@example.com
-SendHub_Tracking__FilePath=D:\SendHub\tracking.json
+SendHub__WatchFolder=D:\ScanFolder
+SendHub__DestinationFolder=D:\ScanFolder\Processed
+SendHub__Email__Smtp__Host=smtp.gmail.com
+SendHub__Email__Smtp__Port=587
+SendHub__Email__Smtp__Username=your-email@gmail.com
+SendHub__Email__Smtp__Password=your-app-password
+SendHub__Email__Smtp__EnableSsl=true
+SendHub__Email__Smtp__From=sendhub@example.com
+SendHub__Email__Smtp__To=recipient@example.com
+SendHub__Tracking__FilePath=D:\SendHub\tracking.json
 ```
 
 ## 🚀 Installation
