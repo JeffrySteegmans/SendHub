@@ -46,6 +46,56 @@ docker run -d \
 | `SendHub__Email__Smtp__To` | Yes | — | Recipient email address |
 | `SendHub__PollingIntervalSeconds` | No | `30` | Polling interval in seconds |
 
+### Docker Compose example
+
+```yaml
+services:
+  sendhub:
+    image: jeffrysteegmans/sendhub
+    restart: unless-stopped
+    volumes:
+      - /path/to/scan/folder:/data/scan
+      - sendhub-tracking:/data/tracking
+    environment:
+      SendHub__Email__Smtp__Host: smtp.gmail.com
+      SendHub__Email__Smtp__Port: 587
+      SendHub__Email__Smtp__Username: your-email@gmail.com
+      SendHub__Email__Smtp__Password: your-app-password
+      SendHub__Email__Smtp__From: sendhub@example.com
+      SendHub__Email__Smtp__To: recipient@example.com
+
+volumes:
+  sendhub-tracking:
+```
+
+Save this as `compose.yaml`, set your values, then run:
+
+```bash
+docker compose up -d
+```
+
+### Volume permissions (Synology NAS and similar)
+
+The container runs as a non-root user. When you mount a host folder, the container process must have write access to it. If you see `UnauthorizedAccessException: Access to the path '/data/scan/Processed' is denied`, the container user does not match the folder owner on the host.
+
+**Fix:** add a `user` field to the compose service with the UID and GID of the host user that owns the scan folder.
+
+1. SSH into your NAS and run `id` to find your UID and GID:
+
+   ```text
+   uid=1026(myuser) gid=100(users)
+   ```
+
+2. Add `user: "1026:100"` to the service (replace with your actual values):
+
+   ```yaml
+   services:
+     sendhub:
+       image: jeffrysteegmans/sendhub
+       user: "1026:100"
+       ...
+   ```
+
 ### Docker on Windows
 
 When running on Docker Desktop for Windows, `FileSystemWatcher` cannot receive change events from the Windows host (WSL2/inotify limitation). SendHub handles this automatically via its polling fallback — files are picked up within `PollingIntervalSeconds` with no extra configuration needed.
