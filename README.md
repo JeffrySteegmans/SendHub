@@ -143,6 +143,7 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 - [x] MVP: Folder monitoring and email delivery
 - [x] File archiving (move to destination folder with conflict resolution)
 - [x] Idempotency tracking (JSON persistence, survives restarts)
+- [ ] Docker image support
 - [ ] Web-based configuration interface
 - [ ] Activity logging and history
 - [ ] Microsoft Teams integration
