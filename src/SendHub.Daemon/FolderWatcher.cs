@@ -58,7 +58,18 @@ internal sealed class FolderWatcher(
             .Select(id => ProcessFileQueue(id, cancellationToken))
             .ToArray();
 
-        await Task.WhenAll(workers);
+        await Task.WhenAll([..workers, PollForNewFiles(cancellationToken)]);
+    }
+
+    private async Task PollForNewFiles(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(
+            TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
+
+        while (await timer.WaitForNextTickAsync(cancellationToken))
+        {
+            await ScanExistingFiles(cancellationToken);
+        }
     }
 
     private async Task ProcessFileQueue(

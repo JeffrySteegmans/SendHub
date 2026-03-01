@@ -10,7 +10,9 @@ SendHub watches a specified folder for new files and automatically emails them t
 
 ### MVP (Implemented)
 
-- **Folder Monitoring**: Continuously watches a configured folder for new files using a real-time file system watcher with 3 concurrent worker threads
+- **Folder Monitoring**: Continuously watches a configured folder for new files using two complementary mechanisms:
+  - **Real-time detection** via `FileSystemWatcher` (instant, works on native Linux)
+  - **Polling fallback** that re-scans the folder every 30 seconds (configurable) — this is the primary detection path when running in Docker on Windows, where `FileSystemWatcher` cannot receive change events from the Windows host due to a WSL2/inotify limitation
 - **Email Delivery**: Automatically sends detected files as email attachments via SMTP
 - **File Archiving**: Moves processed files to a configurable destination folder (with automatic conflict resolution)
 - **Idempotency Tracking**: Persists processed file records to JSON so files are never sent twice after a restart
@@ -64,16 +66,16 @@ SendHub can be configured using either `appsettings.json` or environment variabl
 ### Using Environment Variables
 
 ```bash
-SendHub_WatchFolder=D:\ScanFolder
-SendHub_DestinationFolder=D:\ScanFolder\Processed
-SendHub_Email__Smtp__Host=smtp.gmail.com
-SendHub_Email__Smtp__Port=587
-SendHub_Email__Smtp__Username=your-email@gmail.com
-SendHub_Email__Smtp__Password=your-app-password
-SendHub_Email__Smtp__EnableSsl=true
-SendHub_Email__Smtp__From=sendhub@example.com
-SendHub_Email__Smtp__To=recipient@example.com
-SendHub_Tracking__FilePath=D:\SendHub\tracking.json
+SendHub__WatchFolder=D:\ScanFolder
+SendHub__DestinationFolder=D:\ScanFolder\Processed
+SendHub__Email__Smtp__Host=smtp.gmail.com
+SendHub__Email__Smtp__Port=587
+SendHub__Email__Smtp__Username=your-email@gmail.com
+SendHub__Email__Smtp__Password=your-app-password
+SendHub__Email__Smtp__EnableSsl=true
+SendHub__Email__Smtp__From=sendhub@example.com
+SendHub__Email__Smtp__To=recipient@example.com
+SendHub__Tracking__FilePath=D:\SendHub\tracking.json
 ```
 
 ## 🚀 Installation
@@ -104,6 +106,110 @@ SendHub_Tracking__FilePath=D:\SendHub\tracking.json
    ```bash
    dotnet run
    ```
+
+## 🐳 Docker
+
+SendHub can run as a Docker container, which is the recommended deployment method for production use.
+
+### Docker Prerequisites
+
+- [Docker Engine](https://docs.docker.com/get-docker/) 24.0 or later
+- [Docker Compose](https://docs.docker.com/compose/install/) v2 (included with Docker Desktop)
+
+### Quick Start with Docker Compose
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/JeffrySteegmans/SendHub.git
+   cd SendHub
+   ```
+
+2. Create a `.env` file from the example:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Edit `.env` with your SMTP settings and scan folder path:
+
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your-email@gmail.com
+   SMTP_PASSWORD=your-app-password
+   SMTP_FROM=sendhub@example.com
+   SMTP_TO=recipient@example.com
+   SCAN_FOLDER_HOST_PATH=/path/to/your/scan/folder
+   ```
+
+4. Start the container:
+
+   ```bash
+   docker compose up -d
+   ```
+
+5. View logs:
+
+   ```bash
+   docker compose logs -f sendhub
+   ```
+
+### Running with Docker directly
+
+```bash
+docker build -t sendhub .
+
+docker run -d \
+  --name sendhub \
+  --restart unless-stopped \
+  -v /path/to/scan/folder:/data/scan \
+  -v sendhub-tracking:/data/tracking \
+  -e SendHub__Email__Smtp__Host=smtp.gmail.com \
+  -e SendHub__Email__Smtp__Port=587 \
+  -e SendHub__Email__Smtp__Username=your-email@gmail.com \
+  -e SendHub__Email__Smtp__Password=your-app-password \
+  -e SendHub__Email__Smtp__From=sendhub@example.com \
+  -e SendHub__Email__Smtp__To=recipient@example.com \
+  sendhub
+```
+
+### Docker on Windows
+
+When running on **Docker Desktop for Windows**, `FileSystemWatcher` cannot detect files dropped from Windows Explorer into a bind-mounted folder. This is a known WSL2 limitation: the Linux container's `inotify` subsystem does not receive change events for writes originating from the Windows host.
+
+SendHub works around this automatically via its **polling fallback**: it re-scans the watch folder every `PollingIntervalSeconds` (default: 30 s) and picks up any files that `FileSystemWatcher` missed. No extra configuration is required — just be aware that detection latency is up to 30 seconds instead of instant when running on Windows.
+
+To reduce the polling interval (e.g. for faster testing), set:
+
+```bash
+-e SendHub__PollingIntervalSeconds=5
+```
+
+### Volume Reference
+
+| Container path | Purpose | Recommended mount |
+| --- | --- | --- |
+| `/data/scan` | Folder monitored for new files. Processed files are moved to `/data/scan/Processed`. | Bind mount to host scan folder |
+| `/data/tracking` | Stores `tracking.json` to prevent re-sending files after container restart. | Named Docker volume |
+
+### Environment Variable Reference
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `SendHub__WatchFolder` | No | `/data/scan` | Folder to monitor for new files |
+| `SendHub__DestinationFolder` | No | `/data/scan/Processed` | Where processed files are archived |
+| `SendHub__Tracking__FilePath` | No | `/data/tracking/tracking.json` | Path to idempotency tracking file |
+| `SendHub__PollingIntervalSeconds` | No | `30` | Interval in seconds between folder re-scans. Acts as a fallback when `FileSystemWatcher` events are not received (e.g. Docker on Windows) |
+| `SendHub__Email__Smtp__Host` | Yes | — | SMTP server hostname |
+| `SendHub__Email__Smtp__Port` | Yes | — | SMTP server port (587 for STARTTLS) |
+| `SendHub__Email__Smtp__Username` | No | — | SMTP username (omit for anonymous relay) |
+| `SendHub__Email__Smtp__Password` | No | — | SMTP password |
+| `SendHub__Email__Smtp__EnableSsl` | No | `true` | Use SSL/TLS for SMTP |
+| `SendHub__Email__Smtp__From` | Yes | — | Sender email address |
+| `SendHub__Email__Smtp__To` | Yes | — | Recipient email address |
+
+---
 
 ## 📖 Usage
 
@@ -143,6 +249,7 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 - [x] MVP: Folder monitoring and email delivery
 - [x] File archiving (move to destination folder with conflict resolution)
 - [x] Idempotency tracking (JSON persistence, survives restarts)
+- [x] Docker image support
 - [ ] Web-based configuration interface
 - [ ] Activity logging and history
 - [ ] Microsoft Teams integration

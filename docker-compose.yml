@@ -1,0 +1,37 @@
+services:
+  sendhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sendhub:latest
+    container_name: sendhub
+    restart: unless-stopped
+
+    environment:
+      SendHub__WatchFolder: /data/scan
+      SendHub__DestinationFolder: /data/scan/Processed
+      SendHub__Tracking__FilePath: /data/tracking/tracking.json
+      SendHub__Email__Smtp__Host: ${SMTP_HOST}
+      SendHub__Email__Smtp__Port: ${SMTP_PORT:-587}
+      SendHub__Email__Smtp__Username: ${SMTP_USERNAME}
+      SendHub__Email__Smtp__Password: ${SMTP_PASSWORD}
+      SendHub__Email__Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
+      SendHub__Email__Smtp__From: ${SMTP_FROM}
+      SendHub__Email__Smtp__To: ${SMTP_TO}
+      DOTNET_ENVIRONMENT: Production
+
+    volumes:
+      # Bind mount: point at your existing scan folder on the host
+      - ${SCAN_FOLDER_HOST_PATH:-./data/scan}:/data/scan
+      # Named volume: internal tracking state, survives container recreation
+      - sendhub-tracking:/data/tracking
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  sendhub-tracking:
+    driver: local
