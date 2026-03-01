@@ -1,5 +1,12 @@
 # SendHub
 
+[![Release Docker Image](https://github.com/JeffrySteegmans/SendHub/actions/workflows/release.yml/badge.svg)](https://github.com/JeffrySteegmans/SendHub/actions/workflows/release.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/JeffrySteegmans/SendHub)](https://github.com/JeffrySteegmans/SendHub/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/jeffrysteegmans/sendhub)](https://hub.docker.com/r/jeffrysteegmans/sendhub)
+[![Docker Image Version](https://img.shields.io/docker/v/jeffrysteegmans/sendhub?sort=semver&label=Docker%20Hub)](https://hub.docker.com/r/jeffrysteegmans/sendhub)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![License: MIT](https://img.shields.io/github/license/JeffrySteegmans/SendHub)](LICENSE)
+
 SendHub is a .NET automation tool that monitors a folder for new files and automatically sends them as email attachments to configured recipients. It's designed to streamline file distribution workflows with minimal configuration.
 
 ## 📋 Overview
