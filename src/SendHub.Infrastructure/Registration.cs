@@ -22,7 +22,6 @@ public static class Registration
             return services
                 .AddSingleton<IApplicationSettings, SqliteApplicationSettings>()
                 .AddSingleton<IFileScanner, FileSystemScanner>()
-                .AddSingleton<IFileSystemWatcher, FileSystemWatcherAdapter>()
                 .AddSingleton<IFileSystemWatcherFactory, FileSystemWatcherFactory>()
                 .AddSingleton<IFileSender, SmtpFileSender>()
                 .AddSingleton<IFileArchiver, FileArchiver>()

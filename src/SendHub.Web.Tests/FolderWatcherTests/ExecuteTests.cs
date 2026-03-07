@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SendHub.Features.FileProcessing;
 
-namespace SendHub.Daemon.Tests.FolderWatcherTests;
+namespace SendHub.Web.Tests.FolderWatcherTests;
 
 public sealed class ExecuteTests
 {

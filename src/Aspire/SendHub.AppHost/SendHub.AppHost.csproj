@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\SendHub.Daemon\SendHub.Daemon.csproj" />
+      <ProjectReference Include="..\..\SendHub.Web\SendHub.Web.csproj" />
     </ItemGroup>
 
 </Project>

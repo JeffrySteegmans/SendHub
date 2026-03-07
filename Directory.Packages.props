@@ -49,4 +49,7 @@
     <PackageVersion Include="System.IO.Abstractions" Version="22.1.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.1.0" />
   </ItemGroup>
+  <ItemGroup Label="UI packages">
+    <PackageVersion Include="MudBlazor" Version="9.1.0" />
+  </ItemGroup>
 </Project>

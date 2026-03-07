@@ -2,10 +2,10 @@ using System.Collections.Concurrent;
 using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SendHub.Daemon.Tests.Fakes;
+using SendHub.Web.Tests.Fakes;
 using SendHub.Features.FileProcessing;
 
-namespace SendHub.Daemon.Tests.FolderWatcherTests;
+namespace SendHub.Web.Tests.FolderWatcherTests;
 
 public sealed class OnFileCreatedTests
 {

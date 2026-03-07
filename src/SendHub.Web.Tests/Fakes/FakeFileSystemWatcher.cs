@@ -1,4 +1,4 @@
-﻿namespace SendHub.Daemon.Tests.Fakes;
+namespace SendHub.Web.Tests.Fakes;
 
 internal sealed class FakeFileSystemWatcher : IFileSystemWatcher
 {

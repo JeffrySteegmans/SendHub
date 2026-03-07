@@ -1,4 +1,4 @@
-﻿namespace SendHub.Daemon;
+namespace SendHub.Web;
 
 internal static partial class FolderWatcherLogMessages
 {

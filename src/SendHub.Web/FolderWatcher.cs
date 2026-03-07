@@ -3,7 +3,7 @@ using System.Threading.Channels;
 using SendHub.Features.FileProcessing;
 using SendHub.ValueObjects;
 
-namespace SendHub.Daemon;
+namespace SendHub.Web;
 
 internal sealed class FolderWatcher(
     ILogger<FolderWatcher> logger,

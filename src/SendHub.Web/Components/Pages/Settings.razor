@@ -1,0 +1,48 @@
+@page "/settings"
+
+<PageTitle>Settings - SendHub</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Settings</MudText>
+
+<MudStack Spacing="4">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Folder Configuration</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                Changes to Watch Folder and Destination Folder require a service restart to take effect.
+            </MudAlert>
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_watchFolder" Label="Watch Folder" HelperText="Folder to monitor for new files" FullWidth="true"/>
+                <MudTextField @bind-Value="_destinationFolder" Label="Destination Folder" HelperText="Where processed files are archived" FullWidth="true"/>
+                <MudNumericField @bind-Value="_pollingIntervalSeconds" Label="Polling Interval (seconds)" HelperText="How often to scan for new files (hot-reloadable)" Min="1" FullWidth="true"/>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Email / SMTP</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_smtpHost" Label="SMTP Host" FullWidth="true"/>
+                <MudNumericField @bind-Value="_smtpPort" Label="SMTP Port" Min="1" Max="65535" FullWidth="true"/>
+                <MudTextField @bind-Value="_smtpUsername" Label="Username" FullWidth="true"/>
+                <MudTextField @bind-Value="_smtpPassword" Label="Password" InputType="InputType.Password" FullWidth="true"/>
+                <MudTextField @bind-Value="_smtpFrom" Label="From Address" FullWidth="true"/>
+                <MudTextField @bind-Value="_smtpTo" Label="To Address" FullWidth="true"/>
+                <MudSwitch @bind-Value="_smtpEnableSsl" Label="Enable SSL" Color="Color.Primary"/>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Size="Size.Large">
+        Save
+    </MudButton>
+</MudStack>
