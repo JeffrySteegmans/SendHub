@@ -333,6 +333,26 @@ SendHub/
 └── SendHub.slnx                         # Solution file
 ```
 
+## Blazor Conventions
+
+### Code-Behind Files
+
+**NEVER place C# code inside a `.razor` file.** All logic must live in a separate code-behind file:
+
+- Every Razor component has a paired `ComponentName.razor.cs` file
+- The code-behind class is `partial` and matches the component name exactly
+- Use `[Inject]` attribute in the code-behind instead of `@inject` directives in the razor file
+- Use `[Inject]` with `= default!` to suppress nullable warnings: `[Inject] private IFoo Foo { get; set; } = default!;`
+- The `@inherits` directive stays in the razor file if needed (it is markup, not code)
+- The razor file contains only markup, directives (`@page`, `@inherits`), and component references
+
+**Example:**
+
+```
+Settings.razor       ← markup only (@page, HTML, MudBlazor components)
+Settings.razor.cs    ← partial class with [Inject] properties and methods
+```
+
 ## Additional Notes
 
 ### Concurrency Model

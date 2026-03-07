@@ -16,9 +16,9 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="src/SendHub.Daemon.Tests/SendHub.Daemon.Tests.csproj" />
-  <Project Path="src/SendHub.Daemon/SendHub.Daemon.csproj" />
   <Project Path="src/SendHub.Features.Tests/SendHub.Features.Tests.csproj" />
+  <Project Path="src/SendHub.Web/SendHub.Web.csproj" />
+  <Project Path="src/SendHub.Web.Tests/SendHub.Web.Tests.csproj" />
   <Project Path="src/SendHub.Features/SendHub.Features.csproj" />
   <Project Path="src/SendHub.Infrastructure.Tests/SendHub.Infrastructure.Tests.csproj" />
   <Project Path="src/SendHub.Infrastructure/SendHub.Infrastructure.csproj" />

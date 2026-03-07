@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" />
@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SendHub.Daemon\SendHub.Daemon.csproj" />
+        <ProjectReference Include="..\SendHub.Web\SendHub.Web.csproj" />
         <ProjectReference Include="..\SendHub\SendHub.csproj" />
     </ItemGroup>
 

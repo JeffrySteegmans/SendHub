@@ -1,14 +1,14 @@
-﻿using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using SendHub.Features.FileProcessing;
 
-namespace SendHub.Daemon.Tests.FolderWatcherTests;
+namespace SendHub.Web.Tests.FolderWatcherTests;
 
 public sealed class StartTests
 {
     private readonly Mock<ILogger<FolderWatcher>> loggerMock = new ();
+    private readonly Mock<IApplicationSettings> settingsMock = new ();
     private readonly Mock<IFileScanner> fileScannerMock = new ();
     private readonly Mock<IFileSystemWatcherFactory> fileSystemWatcherFactoryMock = new ();
     private readonly Mock<IFileSystemWatcher> fileSystemWatcherMock = new ();
@@ -27,15 +27,13 @@ public sealed class StartTests
         var fileSystem = new MockFileSystem();
         fileSystem.AddDirectory("C:\\Watch");
 
-        var settings = Options.Create(new FolderWatcherSettings
-        {
-            WatchFolder = @"C:\Watch",
-            DestinationFolder = @"C:\Destination"
-        });
+        settingsMock.Setup(x => x.WatchFolder).Returns(@"C:\Watch");
+        settingsMock.Setup(x => x.DestinationFolder).Returns(@"C:\Destination");
+        settingsMock.Setup(x => x.PollingIntervalSeconds).Returns(300);
 
         var watcher = new FolderWatcher(
             loggerMock.Object,
-            settings,
+            settingsMock.Object,
             fileSystem,
             fileScannerMock.Object,
             fileSystemWatcherFactoryMock.Object,
@@ -45,7 +43,7 @@ public sealed class StartTests
             .StartAsync(CancellationToken.None);
 
         Assert.True(
-            fileSystem.FileExists(settings.Value.DestinationFolder));
+            fileSystem.FileExists(@"C:\Destination"));
     }
 
     [Fact]
@@ -56,15 +54,13 @@ public sealed class StartTests
             { @"C:\Destination\", new MockDirectoryData() }
         });
 
-        var settings = Options.Create(new FolderWatcherSettings
-        {
-            WatchFolder = @"C:\Watch",
-            DestinationFolder = @"C:\Destination"
-        });
+        settingsMock.Setup(x => x.WatchFolder).Returns(@"C:\Watch");
+        settingsMock.Setup(x => x.DestinationFolder).Returns(@"C:\Destination");
+        settingsMock.Setup(x => x.PollingIntervalSeconds).Returns(300);
 
         var watcher = new FolderWatcher(
             loggerMock.Object,
-            settings,
+            settingsMock.Object,
             fileSystem,
             fileScannerMock.Object,
             fileSystemWatcherFactoryMock.Object,

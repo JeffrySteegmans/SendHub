@@ -1,52 +1,46 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
+using SendHub.Web.Tests.Fakes;
 using SendHub.Features.FileProcessing;
 
-namespace SendHub.Daemon.Tests.FolderWatcherTests;
+namespace SendHub.Web.Tests.FolderWatcherTests;
 
-public sealed class ExecuteTests
+public sealed class OnFileCreatedTests
 {
     private readonly Mock<ILogger<FolderWatcher>> loggerMock = new ();
+    private readonly Mock<IApplicationSettings> settingsMock = new ();
     private readonly Mock<IFileScanner> fileScannerMock = new ();
     private readonly Mock<IFileSystemWatcherFactory> fileSystemWatcherFactoryMock = new ();
-    private readonly Mock<IFileSystemWatcher> fileSystemWatcherMock = new ();
+    private readonly FakeFileSystemWatcher fileSystemWatcher = new ();
     private readonly Mock<ICommandHandler<ProcessIncomingFile>> commandHandlerMock = new ();
 
-    public ExecuteTests()
+    public OnFileCreatedTests()
     {
         fileSystemWatcherFactoryMock
             .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(fileSystemWatcherMock.Object);
+            .Returns(fileSystemWatcher);
+
+        settingsMock.Setup(x => x.WatchFolder).Returns(@"C:\Watch");
+        settingsMock.Setup(x => x.DestinationFolder).Returns(@"C:\Destination");
+        settingsMock.Setup(x => x.PollingIntervalSeconds).Returns(300);
     }
 
     [Fact]
-    public async Task ShouldProcessAllFiles()
+    public async Task ShouldProcessCreatedFile()
     {
-        var settings = Options.Create(new FolderWatcherSettings
-        {
-            WatchFolder = @"C:\Watch",
-            DestinationFolder = @"C:\Destination"
-        });
-        var existingFiles = new List<FileInfo>
-        {
-            new (@"C:\Watch\file1.txt"),
-            new (@"C:\Watch\file2.txt"),
-            new (@"C:\Watch\file3.txt")
-        };
-        var scanCompleted = new TaskCompletionSource<bool>();
+        var fileSystem = new MockFileSystem();
+
         fileScannerMock
             .Setup(x => x.GetFiles(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .Callback((string _, string _, CancellationToken _) => scanCompleted.TrySetResult(true))
-            .ReturnsAsync(existingFiles);
+            .ReturnsAsync([]);
 
         var processedFiles = new ConcurrentBag<string>();
-        var allProcessed = new TaskCompletionSource<bool>();
+        var fileProcessed = new TaskCompletionSource<bool>();
         commandHandlerMock
             .Setup(x => x.Handle(
                 It.IsAny<ProcessIncomingFile>(),
@@ -54,17 +48,14 @@ public sealed class ExecuteTests
             .Returns<ProcessIncomingFile, CancellationToken>(async (command, _) =>
             {
                 processedFiles.Add(command.File.Name);
-                if (processedFiles.Count == existingFiles.Count)
-                {
-                    allProcessed.TrySetResult(true);
-                }
+                fileProcessed.TrySetResult(true);
                 await Task.CompletedTask;
             });
 
         var watcher = new FolderWatcher(
             loggerMock.Object,
-            settings,
-            new MockFileSystem(),
+            settingsMock.Object,
+            fileSystem,
             fileScannerMock.Object,
             fileSystemWatcherFactoryMock.Object,
             commandHandlerMock.Object);
@@ -74,18 +65,20 @@ public sealed class ExecuteTests
         await watcher.StartAsync(
             cancellationTokenSource.Token);
 
-        await scanCompleted.Task;
-        // Wait for all files to be processed
+        fileSystem.AddEmptyFile("test.txt");
+
+        var args = new FileSystemEventArgs(WatcherChangeTypes.Created, ".", "test.txt");
+        fileSystemWatcher
+            .RaiseCreated(args);
+
         var timeout = Task.Delay(TimeSpan.FromSeconds(2));
-        var winner = await Task.WhenAny(allProcessed.Task, timeout);
+        var winner = await Task.WhenAny(fileProcessed.Task, timeout);
 
         await watcher.StopAsync(
             cancellationTokenSource.Token);
 
-        Assert.Same(allProcessed.Task, winner);
-        Assert.Equal(3, processedFiles.Count);
-        Assert.Contains("file1.txt", processedFiles);
-        Assert.Contains("file2.txt", processedFiles);
-        Assert.Contains("file3.txt", processedFiles);
+        Assert.Same(fileProcessed.Task, winner);
+        Assert.Single(processedFiles);
+        Assert.Contains("test.txt", processedFiles);
     }
 }

@@ -1,29 +1,27 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using System.Threading.Channels;
-using Microsoft.Extensions.Options;
 using SendHub.Features.FileProcessing;
 using SendHub.ValueObjects;
 
-namespace SendHub.Daemon;
+namespace SendHub.Web;
 
 internal sealed class FolderWatcher(
     ILogger<FolderWatcher> logger,
-    IOptions<FolderWatcherSettings> settings,
+    IApplicationSettings settings,
     IFileSystem fileSystem,
     IFileScanner fileScanner,
     IFileSystemWatcherFactory watcherFactory,
     ICommandHandler<ProcessIncomingFile> processFileHandler) : BackgroundService
 {
-    private readonly FolderWatcherSettings _settings = settings.Value;
     private readonly Channel<FileInfo> _fileQueue = Channel.CreateUnbounded<FileInfo>();
 
     private IFileSystemWatcher? _fileSystemWatcher;
 
     private readonly DirectoryPath _watchFolder =
-        DirectoryPath.From(settings.Value.WatchFolder);
+        DirectoryPath.From(settings.WatchFolder);
 
     private readonly DirectoryPath _destinationFolder =
-        DirectoryPath.From(settings.Value.DestinationFolder);
+        DirectoryPath.From(settings.DestinationFolder);
 
     public override Task StartAsync(
         CancellationToken cancellationToken)
@@ -63,11 +61,12 @@ internal sealed class FolderWatcher(
 
     private async Task PollForNewFiles(CancellationToken cancellationToken)
     {
-        using var timer = new PeriodicTimer(
-            TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
-
-        while (await timer.WaitForNextTickAsync(cancellationToken))
+        while (true)
         {
+            await Task.Delay(
+                TimeSpan.FromSeconds(settings.PollingIntervalSeconds),
+                cancellationToken);
+
             await ScanExistingFiles(cancellationToken);
         }
     }
@@ -105,7 +104,7 @@ internal sealed class FolderWatcher(
             .ScanningExistingFiles(logger, _watchFolder.Value);
 
         var files = await fileScanner.GetFiles(
-            _settings.WatchFolder,
+            settings.WatchFolder,
             "*.*",
             cancellationToken);
 
