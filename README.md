@@ -22,11 +22,11 @@ SendHub watches a specified folder for new files and automatically emails them t
   - **Polling fallback** that re-scans the folder every 30 seconds (configurable) — this is the primary detection path when running in Docker on Windows, where `FileSystemWatcher` cannot receive change events from the Windows host due to a WSL2/inotify limitation
 - **Email Delivery**: Automatically sends detected files as email attachments via SMTP
 - **File Archiving**: Moves processed files to a configurable destination folder (with automatic conflict resolution)
-- **Idempotency Tracking**: Persists processed file records to JSON so files are never sent twice after a restart
+- **Idempotency Tracking**: Persists processed file records to SQLite database so files are never sent twice after a restart (with automatic migration from legacy JSON tracking)
 - **Flexible Configuration**: Configure via `appsettings.json`, user secrets, or environment variables:
   - Folder paths (watch folder and destination folder)
   - SMTP server settings (host, port, credentials, SSL)
-  - Tracking file path
+  - Database path for tracking storage
 
 ### 🚀 Planned Features
 
@@ -52,6 +52,9 @@ SendHub can be configured using either `appsettings.json` or environment variabl
   "SendHub": {
     "WatchFolder": "D:\\ScanFolder",
     "DestinationFolder": "D:\\ScanFolder\\Processed",
+    "Database": {
+      "Path": "D:\\SendHub\\sendhub.db"
+    },
     "Email": {
       "Smtp": {
         "Host": "smtp.gmail.com",
@@ -62,9 +65,6 @@ SendHub can be configured using either `appsettings.json` or environment variabl
         "From": "sendhub@example.com",
         "To": "recipient@example.com"
       }
-    },
-    "Tracking": {
-      "FilePath": "D:\\SendHub\\tracking.json"
     }
   }
 }
@@ -75,6 +75,7 @@ SendHub can be configured using either `appsettings.json` or environment variabl
 ```bash
 SendHub__WatchFolder=D:\ScanFolder
 SendHub__DestinationFolder=D:\ScanFolder\Processed
+SendHub__Database__Path=D:\SendHub\sendhub.db
 SendHub__Email__Smtp__Host=smtp.gmail.com
 SendHub__Email__Smtp__Port=587
 SendHub__Email__Smtp__Username=your-email@gmail.com
@@ -82,7 +83,6 @@ SendHub__Email__Smtp__Password=your-app-password
 SendHub__Email__Smtp__EnableSsl=true
 SendHub__Email__Smtp__From=sendhub@example.com
 SendHub__Email__Smtp__To=recipient@example.com
-SendHub__Tracking__FilePath=D:\SendHub\tracking.json
 ```
 
 ## 🚀 Installation
@@ -171,7 +171,7 @@ docker run -d \
   --name sendhub \
   --restart unless-stopped \
   -v /path/to/scan/folder:/data/scan \
-  -v sendhub-tracking:/data/tracking \
+  -v sendhub-data:/data/db \
   -e SendHub__Email__Smtp__Host=smtp.gmail.com \
   -e SendHub__Email__Smtp__Port=587 \
   -e SendHub__Email__Smtp__Username=your-email@gmail.com \
@@ -198,7 +198,7 @@ To reduce the polling interval (e.g. for faster testing), set:
 | Container path | Purpose | Recommended mount |
 | --- | --- | --- |
 | `/data/scan` | Folder monitored for new files. Processed files are moved to `/data/scan/Processed`. | Bind mount to host scan folder |
-| `/data/tracking` | Stores `tracking.json` to prevent re-sending files after container restart. | Named Docker volume |
+| `/data/db` | Stores `sendhub.db` SQLite database to prevent re-sending files after container restart. | Named Docker volume |
 
 ### Environment Variable Reference
 
@@ -206,7 +206,7 @@ To reduce the polling interval (e.g. for faster testing), set:
 | --- | --- | --- | --- |
 | `SendHub__WatchFolder` | No | `/data/scan` | Folder to monitor for new files |
 | `SendHub__DestinationFolder` | No | `/data/scan/Processed` | Where processed files are archived |
-| `SendHub__Tracking__FilePath` | No | `/data/tracking/tracking.json` | Path to idempotency tracking file |
+| `SendHub__Database__Path` | No | `/data/db/sendhub.db` | Path to SQLite database for tracking processed files |
 | `SendHub__PollingIntervalSeconds` | No | `30` | Interval in seconds between folder re-scans. Acts as a fallback when `FileSystemWatcher` events are not received (e.g. Docker on Windows) |
 | `SendHub__Email__Smtp__Host` | Yes | — | SMTP server hostname |
 | `SendHub__Email__Smtp__Port` | Yes | — | SMTP server port (587 for STARTTLS) |
@@ -255,8 +255,10 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 
 - [x] MVP: Folder monitoring and email delivery
 - [x] File archiving (move to destination folder with conflict resolution)
-- [x] Idempotency tracking (JSON persistence, survives restarts)
+- [x] Idempotency tracking (SQLite database with automatic JSON migration)
 - [x] Docker image support
+- [x] SQLite database for persistent tracking (with automatic migration from legacy JSON)
+- [ ] Database-driven configuration (settings stored in SQLite)
 - [ ] Web-based configuration interface
 - [ ] Activity logging and history
 - [ ] Microsoft Teams integration

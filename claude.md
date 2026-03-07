@@ -65,7 +65,8 @@ FolderWatcher (BackgroundService)
 
 - FileSystem: File scanning, watching, and archiving implementations
 - Messaging: Email sending via SMTP (`SmtpFileSender`)
-- Tracking: JSON-based processed file tracking (`JsonFileTracker`) for idempotency
+- Database: SQLite database settings (`DatabaseSettings`)
+- Tracking: SQLite-based processed file tracking (`SqliteFileTracker`) for idempotency with automatic JSON migration
 
 ### Test Projects
 
@@ -82,7 +83,7 @@ FolderWatcher (BackgroundService)
 #### SendHub.Infrastructure.Tests
 
 - Unit tests for infrastructure layer
-- Covers `FileArchiver` (move, conflict resolution), `SmtpFileSender` (settings validation), and `JsonFileTracker` (persistence, idempotency, corruption recovery)
+- Covers `FileArchiver` (move, conflict resolution), `SmtpFileSender` (settings validation), and `SqliteFileTracker` (persistence, idempotency, schema creation, legacy JSON migration)
 
 ### Aspire Projects
 
@@ -131,9 +132,12 @@ Location: [src/SendHub.Infrastructure/Tracking/](src/SendHub.Infrastructure/Trac
 
 Ensures idempotency — files already processed are not sent again after restarts.
 
-- `JsonFileTracker`: Implements `IProcessedFileTracker`, persists state to a JSON file
-- `TrackedFile`: Value object holding file path and processed timestamp
-- `TrackingSettings`: Configuration (`SendHub:Tracking:FilePath`)
+- `SqliteFileTracker`: Implements `IProcessedFileTracker`, persists state to a SQLite database
+- `TrackedFile`: Value object holding file path and processed timestamp (used for JSON migration)
+- Database schema:
+  - `processed_files` table: Stores file paths and processed timestamps
+  - `schema_version` table: Tracks database schema version for future migrations
+- Automatic migration: Legacy JSON tracking files are automatically migrated to SQLite on first run
 
 ### 5. Configuration System
 
@@ -148,9 +152,9 @@ Location: [src/SendHub.Daemon/FolderWatcherSettings.cs](src/SendHub.Daemon/Folde
 
 Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, port, username, password, SSL, from, to).
 
-`TrackingSettings` (section: `SendHub:Tracking`):
+`DatabaseSettings` (section: `SendHub:Database`):
 
-- `FilePath`: Path to the JSON file persisting processed file records
+- `Path`: Path to the SQLite database file (default: `D:\SendHub\sendhub.db`)
 
 ## Technologies Used
 
@@ -165,6 +169,12 @@ Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, 
 - Microsoft.Extensions.DependencyInjection
 - Microsoft.Extensions.Configuration
 - System.IO.Abstractions (File system testability)
+
+### Database
+
+- Microsoft.Data.Sqlite (SQLite ADO.NET provider)
+- Dapper (Micro-ORM for clean SQL queries)
+- SQLite (embedded database for file tracking and future settings storage)
 
 ### Logging & Observability
 
@@ -215,6 +225,9 @@ Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, 
      "SendHub": {
        "WatchFolder": "D:\\ScanFolder",
        "DestinationFolder": "D:\\ScanFolder\\Processed",
+       "Database": {
+         "Path": "D:\\SendHub\\sendhub.db"
+       },
        "Email": {
          "Smtp": {
            "Host": "smtp.gmail.com",
@@ -225,9 +238,6 @@ Email SMTP settings are configured separately under `SendHub:Email:Smtp` (host, 
            "From": "sendhub@example.com",
            "To": "recipient@example.com"
          }
-       },
-       "Tracking": {
-         "FilePath": "D:\\SendHub\\tracking.json"
        }
      }
    }
