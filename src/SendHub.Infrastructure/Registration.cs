@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SendHub.Infrastructure.Database;
 using SendHub.Infrastructure.FileSystem;
 using SendHub.Infrastructure.Messaging.Email;
 using SendHub.Infrastructure.Tracking;
@@ -12,8 +13,8 @@ public static class Registration
         public IServiceCollection AddSendHubInfrastructure()
         {
             services
-                .AddOptions<TrackingSettings>()
-                .BindConfiguration(TrackingSettings.SectionName)
+                .AddOptions<DatabaseSettings>()
+                .BindConfiguration(DatabaseSettings.SectionName)
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
@@ -29,7 +30,7 @@ public static class Registration
                 .AddSingleton<IFileSystemWatcherFactory, FileSystemWatcherFactory>()
                 .AddSingleton<IFileSender, SmtpFileSender>()
                 .AddSingleton<IFileArchiver, FileArchiver>()
-                .AddSingleton<IProcessedFileTracker, JsonFileTracker>();
+                .AddSingleton<IProcessedFileTracker, SqliteFileTracker>();
         }
     }
 }
