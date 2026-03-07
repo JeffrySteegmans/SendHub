@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using NodaTime;
 using SendHub.Daemon;
 using SendHub.Features;
@@ -29,11 +29,6 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>()
     .AddEnvironmentVariables();
-
-builder.Services
-    .AddOptions<FolderWatcherSettings>()
-    .BindConfiguration(FolderWatcherSettings.SectionName)
-    .ValidateOnStart();
 
 builder.Logging
     .ClearProviders()

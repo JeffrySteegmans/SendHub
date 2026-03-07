@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using SendHub.Infrastructure.Database;
 using SendHub.Infrastructure.FileSystem;
 using SendHub.Infrastructure.Messaging.Email;
+using SendHub.Infrastructure.Settings;
 using SendHub.Infrastructure.Tracking;
 
 namespace SendHub.Infrastructure;
@@ -18,13 +19,8 @@ public static class Registration
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            services
-                .AddOptions<SmtpSettings>()
-                .BindConfiguration(SmtpSettings.SectionName)
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
             return services
+                .AddSingleton<IApplicationSettings, SqliteApplicationSettings>()
                 .AddSingleton<IFileScanner, FileSystemScanner>()
                 .AddSingleton<IFileSystemWatcher, FileSystemWatcherAdapter>()
                 .AddSingleton<IFileSystemWatcherFactory, FileSystemWatcherFactory>()

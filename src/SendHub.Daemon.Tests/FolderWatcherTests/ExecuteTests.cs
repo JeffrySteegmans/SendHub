@@ -1,7 +1,6 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using SendHub.Features.FileProcessing;
 
@@ -10,6 +9,7 @@ namespace SendHub.Daemon.Tests.FolderWatcherTests;
 public sealed class ExecuteTests
 {
     private readonly Mock<ILogger<FolderWatcher>> loggerMock = new ();
+    private readonly Mock<IApplicationSettings> settingsMock = new ();
     private readonly Mock<IFileScanner> fileScannerMock = new ();
     private readonly Mock<IFileSystemWatcherFactory> fileSystemWatcherFactoryMock = new ();
     private readonly Mock<IFileSystemWatcher> fileSystemWatcherMock = new ();
@@ -20,16 +20,15 @@ public sealed class ExecuteTests
         fileSystemWatcherFactoryMock
             .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(fileSystemWatcherMock.Object);
+
+        settingsMock.Setup(x => x.WatchFolder).Returns(@"C:\Watch");
+        settingsMock.Setup(x => x.DestinationFolder).Returns(@"C:\Destination");
+        settingsMock.Setup(x => x.PollingIntervalSeconds).Returns(300);
     }
 
     [Fact]
     public async Task ShouldProcessAllFiles()
     {
-        var settings = Options.Create(new FolderWatcherSettings
-        {
-            WatchFolder = @"C:\Watch",
-            DestinationFolder = @"C:\Destination"
-        });
         var existingFiles = new List<FileInfo>
         {
             new (@"C:\Watch\file1.txt"),
@@ -63,7 +62,7 @@ public sealed class ExecuteTests
 
         var watcher = new FolderWatcher(
             loggerMock.Object,
-            settings,
+            settingsMock.Object,
             new MockFileSystem(),
             fileScannerMock.Object,
             fileSystemWatcherFactoryMock.Object,
