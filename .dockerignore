@@ -14,6 +14,8 @@
 !src/SendHub.Infrastructure/**
 !src/SendHub.Web/
 !src/SendHub.Web/**
+!src/Aspire/SendHub.ServiceDefaults/
+!src/Aspire/SendHub.ServiceDefaults/**
 
 # Exclude build artifacts within allowed trees
 src/SendHub/bin/
@@ -24,6 +26,8 @@ src/SendHub.Infrastructure/bin/
 src/SendHub.Infrastructure/obj/
 src/SendHub.Web/bin/
 src/SendHub.Web/obj/
+src/Aspire/SendHub.ServiceDefaults/bin/
+src/Aspire/SendHub.ServiceDefaults/obj/
 
 # Exclude environment-specific settings that may contain secrets
 src/SendHub.Web/appsettings.Development.json
