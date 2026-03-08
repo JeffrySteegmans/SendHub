@@ -12,8 +12,8 @@
 !src/SendHub.Features/**
 !src/SendHub.Infrastructure/
 !src/SendHub.Infrastructure/**
-!src/SendHub.Daemon/
-!src/SendHub.Daemon/**
+!src/SendHub.Web/
+!src/SendHub.Web/**
 
 # Exclude build artifacts within allowed trees
 src/SendHub/bin/
@@ -22,8 +22,8 @@ src/SendHub.Features/bin/
 src/SendHub.Features/obj/
 src/SendHub.Infrastructure/bin/
 src/SendHub.Infrastructure/obj/
-src/SendHub.Daemon/bin/
-src/SendHub.Daemon/obj/
+src/SendHub.Web/bin/
+src/SendHub.Web/obj/
 
 # Exclude environment-specific settings that may contain secrets
-src/SendHub.Daemon/appsettings.Development.json
+src/SendHub.Web/appsettings.Development.json
