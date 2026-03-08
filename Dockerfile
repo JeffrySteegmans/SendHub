@@ -9,9 +9,9 @@ COPY SendHub.slnx ./
 COPY src/SendHub/SendHub.csproj                               src/SendHub/
 COPY src/SendHub.Features/SendHub.Features.csproj             src/SendHub.Features/
 COPY src/SendHub.Infrastructure/SendHub.Infrastructure.csproj src/SendHub.Infrastructure/
-COPY src/SendHub.Daemon/SendHub.Daemon.csproj                 src/SendHub.Daemon/
+COPY src/SendHub.Web/SendHub.Web.csproj                       src/SendHub.Web/
 
-RUN dotnet restore src/SendHub.Daemon/SendHub.Daemon.csproj
+RUN dotnet restore src/SendHub.Web/SendHub.Web.csproj
 
 
 FROM restore AS build
@@ -19,9 +19,9 @@ FROM restore AS build
 COPY src/SendHub/                src/SendHub/
 COPY src/SendHub.Features/       src/SendHub.Features/
 COPY src/SendHub.Infrastructure/ src/SendHub.Infrastructure/
-COPY src/SendHub.Daemon/         src/SendHub.Daemon/
+COPY src/SendHub.Web/            src/SendHub.Web/
 
-RUN dotnet publish src/SendHub.Daemon/SendHub.Daemon.csproj \
+RUN dotnet publish src/SendHub.Web/SendHub.Web.csproj \
     --configuration Release \
     --no-restore \
     --output /app/publish
@@ -33,7 +33,7 @@ RUN useradd --system --no-create-home --shell /usr/sbin/nologin sendhub
 
 WORKDIR /app
 
-RUN mkdir -p /data/scan /data/tracking \
+RUN mkdir -p /data/scan /data/db \
     && chown -R sendhub:sendhub /data
 
 COPY --from=build /app/publish ./
@@ -42,9 +42,11 @@ USER sendhub
 
 ENV SendHub__WatchFolder=/data/scan
 ENV SendHub__DestinationFolder=/data/scan/Processed
-ENV SendHub__Tracking__FilePath=/data/tracking/tracking.json
+ENV SendHub__Database__Path=/data/db/sendhub.db
 ENV DOTNET_ENVIRONMENT=Production
 
-VOLUME ["/data/scan", "/data/tracking"]
+EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "SendHub.Daemon.dll"]
+VOLUME ["/data/scan", "/data/db"]
+
+ENTRYPOINT ["dotnet", "SendHub.Web.dll"]

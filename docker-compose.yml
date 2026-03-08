@@ -7,24 +7,18 @@ services:
     container_name: sendhub
     restart: unless-stopped
 
+    ports:
+      - "8080:8080"
+
     environment:
-      SendHub__WatchFolder: /data/scan
-      SendHub__DestinationFolder: /data/scan/Processed
-      SendHub__Tracking__FilePath: /data/tracking/tracking.json
-      SendHub__Email__Smtp__Host: ${SMTP_HOST}
-      SendHub__Email__Smtp__Port: ${SMTP_PORT:-587}
-      SendHub__Email__Smtp__Username: ${SMTP_USERNAME}
-      SendHub__Email__Smtp__Password: ${SMTP_PASSWORD}
-      SendHub__Email__Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
-      SendHub__Email__Smtp__From: ${SMTP_FROM}
-      SendHub__Email__Smtp__To: ${SMTP_TO}
+      SendHub__Database__Path: /data/db/sendhub.db
       DOTNET_ENVIRONMENT: Production
 
     volumes:
       # Bind mount: point at your existing scan folder on the host
       - ${SCAN_FOLDER_HOST_PATH:-./data/scan}:/data/scan
-      # Named volume: internal tracking state, survives container recreation
-      - sendhub-tracking:/data/tracking
+      # Named volume: SQLite database, survives container recreation
+      - sendhub-db:/data/db
 
     logging:
       driver: json-file
@@ -33,5 +27,5 @@ services:
         max-file: "3"
 
 volumes:
-  sendhub-tracking:
+  sendhub-db:
     driver: local
