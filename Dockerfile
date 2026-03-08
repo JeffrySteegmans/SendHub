@@ -6,20 +6,22 @@ COPY Directory.Build.props ./
 COPY Directory.Packages.props ./
 COPY SendHub.slnx ./
 
-COPY src/SendHub/SendHub.csproj                               src/SendHub/
-COPY src/SendHub.Features/SendHub.Features.csproj             src/SendHub.Features/
-COPY src/SendHub.Infrastructure/SendHub.Infrastructure.csproj src/SendHub.Infrastructure/
-COPY src/SendHub.Web/SendHub.Web.csproj                       src/SendHub.Web/
+COPY src/SendHub/SendHub.csproj                                                 src/SendHub/
+COPY src/SendHub.Features/SendHub.Features.csproj                               src/SendHub.Features/
+COPY src/SendHub.Infrastructure/SendHub.Infrastructure.csproj                   src/SendHub.Infrastructure/
+COPY src/SendHub.Web/SendHub.Web.csproj                                         src/SendHub.Web/
+COPY src/Aspire/SendHub.ServiceDefaults/SendHub.ServiceDefaults.csproj          src/Aspire/SendHub.ServiceDefaults/
 
 RUN dotnet restore src/SendHub.Web/SendHub.Web.csproj
 
 
 FROM restore AS build
 
-COPY src/SendHub/                src/SendHub/
-COPY src/SendHub.Features/       src/SendHub.Features/
-COPY src/SendHub.Infrastructure/ src/SendHub.Infrastructure/
-COPY src/SendHub.Web/            src/SendHub.Web/
+COPY src/SendHub/                              src/SendHub/
+COPY src/SendHub.Features/                     src/SendHub.Features/
+COPY src/SendHub.Infrastructure/               src/SendHub.Infrastructure/
+COPY src/SendHub.Web/                          src/SendHub.Web/
+COPY src/Aspire/SendHub.ServiceDefaults/       src/Aspire/SendHub.ServiceDefaults/
 
 RUN dotnet publish src/SendHub.Web/SendHub.Web.csproj \
     --configuration Release \
